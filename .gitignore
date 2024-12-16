@@ -1,0 +1,8 @@
+*.pkl
+*.pyc
+__pycache__/
+.env/
+.venv/
+
+# Exclude Visual Studio/VSCode files
+.vs/
