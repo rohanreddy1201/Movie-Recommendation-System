@@ -19,7 +19,7 @@ def download_file(url, output_path):
         st.success("Download complete!")
 
 # File paths and download URL
-RATINGS_FILE_URL = "https://drive.google.com/uc?id=YOUR_FILE_ID&export=download"
+RATINGS_FILE_URL = "https://drive.google.com/file/d/1e0XMFMh3mRAX2BQdKI89Gk8Imt_r5nzB/view?usp=sharing"
 RATINGS_FILE_PATH = "cleaned_ratings_data.csv.bz2"
 MOVIE_TITLES_FILE_PATH = "cleaned_movie_titles.csv"
 
