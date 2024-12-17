@@ -2,43 +2,46 @@
 import pandas as pd
 import bz2
 import requests
-import os
+import io
 from recommendation_system import find_similar_users, recommend_movies_with_diversity
 
-# Function to download the file if it doesn't exist
-def download_file(url, output_path):
+# Function to stream large file directly from a URL
+@st.cache_data
+def load_datasets(ratings_url, movies_path):
     """
-    Downloads a file from the provided URL if it does not already exist.
+    Streams the ratings data from a URL and loads movie titles from a local file.
     """
-    if not os.path.exists(output_path):
-        st.info("Downloading large dataset... This may take a few minutes.")
-        response = requests.get(url, stream=True)
-        with open(output_path, "wb") as f:
-            for chunk in response.iter_content(chunk_size=8192):
-                f.write(chunk)
-        st.success("Download complete!")
+    try:
+        st.info("Loading large dataset... This may take a few minutes.")
+        # Stream and decompress the ratings data
+        response = requests.get(ratings_url, stream=True)
+        if response.status_code != 200:
+            st.error("Failed to fetch the ratings dataset.")
+            return None, None
+        
+        compressed_file = io.BytesIO(response.content)
+        with bz2.BZ2File(compressed_file, "rb") as file:
+            ratings_data = pd.read_csv(file)
+        
+        # Load movie titles
+        movie_titles = pd.read_csv(movies_path)
+        st.success("Datasets loaded successfully!")
+        return ratings_data, movie_titles
 
-# File paths and download URL
-RATINGS_FILE_URL = "https://drive.google.com/file/d/1e0XMFMh3mRAX2BQdKI89Gk8Imt_r5nzB/view?usp=sharing"
-RATINGS_FILE_PATH = "cleaned_ratings_data.csv.bz2"
+    except Exception as e:
+        st.error(f"Error loading datasets: {e}")
+        return None, None
+
+# Dataset URLs and file paths
+RATINGS_FILE_URL = "https://drive.google.com/uc?id=YOUR_FILE_ID&export=download"
 MOVIE_TITLES_FILE_PATH = "cleaned_movie_titles.csv"
 
-# Download the large ratings file if it doesn't exist
-download_file(RATINGS_FILE_URL, RATINGS_FILE_PATH)
-
 # Load datasets
-@st.cache_data
-def load_datasets(ratings_path, movies_path):
-    """
-    Loads and decompresses ratings data and loads movie titles.
-    """
-    with bz2.BZ2File(ratings_path, "rb") as file:
-        ratings_data = pd.read_csv(file)
-    movie_titles = pd.read_csv(movies_path)
-    return ratings_data, movie_titles
+ratings_data, movie_titles = load_datasets(RATINGS_FILE_URL, MOVIE_TITLES_FILE_PATH)
 
-# Load data
-ratings_data, movie_titles = load_datasets(RATINGS_FILE_PATH, MOVIE_TITLES_FILE_PATH)
+# Stop execution if datasets fail to load
+if ratings_data is None or movie_titles is None:
+    st.stop()
 
 # Streamlit UI
 st.title("🎬 Movie Recommendation System")
@@ -56,9 +59,10 @@ for i in range(5):
 # Generate recommendations
 if st.button("Get Recommendations"):
     tolerance = 1  # Allowable rating tolerance
-    similar_users = find_similar_users(ratings_data, selected_movies, tolerance)
-    recommendations = recommend_movies_with_diversity(
-        ratings_data, movie_titles, similar_users, selected_movies
-    )
+    with st.spinner("Finding similar users and recommending movies..."):
+        similar_users = find_similar_users(ratings_data, selected_movies, tolerance)
+        recommendations = recommend_movies_with_diversity(
+            ratings_data, movie_titles, similar_users, selected_movies
+        )
     st.write("### Recommended Movies:")
     st.table(recommendations[["title", "year", "avg_rating"]])
