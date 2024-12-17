@@ -5,24 +5,24 @@ import requests
 import io
 from recommendation_system import find_similar_users, recommend_movies_with_diversity
 
-# Function to stream large file directly from a URL
+# Function to stream large dataset directly from a URL
 @st.cache_data
 def load_datasets(ratings_url, movies_path):
     """
     Streams the ratings data from a URL and loads movie titles from a local file.
     """
     try:
-        st.info("Loading large dataset... This may take a few minutes.")
+        st.info("Loading dataset... This may take a minute.")
         # Stream and decompress the ratings data
         response = requests.get(ratings_url, stream=True)
         if response.status_code != 200:
             st.error("Failed to fetch the ratings dataset.")
             return None, None
-        
+
         compressed_file = io.BytesIO(response.content)
         with bz2.BZ2File(compressed_file, "rb") as file:
             ratings_data = pd.read_csv(file)
-        
+
         # Load movie titles
         movie_titles = pd.read_csv(movies_path)
         st.success("Datasets loaded successfully!")
@@ -33,7 +33,7 @@ def load_datasets(ratings_url, movies_path):
         return None, None
 
 # Dataset URLs and file paths
-RATINGS_FILE_URL = "https://www.dropbox.com/scl/fi/uimh71lyywm6nrqkjkamv/cleaned_ratings_data.csv.bz2?rlkey=hc9hz2lwcne0m3k9n7ne7r0m5&st=e5yh75go&dl=1"
+RATINGS_FILE_URL = "https://www.dropbox.com/scl/fi/a8vmna5nf8t7pab846y9j/cleaned_ratings_data_small.csv.bz2?rlkey=kykul31m5jvuaswlnrsrilhhv&st=0qmaufxv&dl=1"
 MOVIE_TITLES_FILE_PATH = "cleaned_movie_titles.csv"
 
 # Load datasets
