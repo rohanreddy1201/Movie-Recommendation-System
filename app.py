@@ -33,7 +33,7 @@ def load_datasets(ratings_url, movies_path):
         return None, None
 
 # Dataset URLs and file paths
-RATINGS_FILE_URL = "https://drive.google.com/uc?id=YOUR_FILE_ID&export=download"
+RATINGS_FILE_URL = "https://drive.google.com/uc?id=1e0XMFMh3mRAX2BQdKI89Gk8Imt_r5nzB&export=download"
 MOVIE_TITLES_FILE_PATH = "cleaned_movie_titles.csv"
 
 # Load datasets
